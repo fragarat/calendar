@@ -1,0 +1,357 @@
+% DIN-A3 doublesided year calendar
+% Author: Robert Krause
+% License : Creative Commons attribution license
+% Submitted to TeXample.net on 13 July 2018
+
+% Modified by fatienza 2025
+
+\documentclass[a3paper,landscape, swedish, 10pt]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[swedish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+
+%\definecolor{marron}{RGB}{156,97,20}
+\definecolor{marron}{RGB}{79,2,13}
+\definecolor{rosa}{RGB}{233,196,199}
+\definecolor{azul}{RGB}{185,211,220}
+\definecolor{verde}{RGB}{173,202,184}
+\definecolor{gris}{RGB}{214,210,196}
+\definecolor{piedra}{RGB}{191,184,175}
+
+\usepackage{translator}		% Month and Day names
+\usepackage{tikz,xparse}    % Use the calendar.sty style
+\usepackage{iftex}
+\makeatletter
+\ifLuaTeX
+  \expandafter\@firstofone
+\else
+  \expandafter\@gobble
+\fi
+  {\usepackage{luacode}}
+
+\usepackage{fancyhdr}       % header and footer
+\usepackage{fix-cm}     % Large year in header
+\usepackage{xparse}
+
+\usepackage[ headheight = 0.8cm, hmargin=.5cm,
+  top = 1.7cm, nofoot,bottom=0cm]{geometry}
+
+\usetikzlibrary{calc}
+\usetikzlibrary{calendar}
+\renewcommand*\familydefault{\sfdefault}
+
+% Names of Holidays are inserted by employing this macro
+\def\termin#1#2{%
+  \node [anchor=north west, text width= 3.4cm] at
+    ($(#1.north west)+(3em, 0em)$) {\tiny{#2}};
+}
+
+\ifLuaTeX
+\begin{luacode*}
+function get_week_number(y,m,d)
+  return os.date("%V",os.time{year=y,month=m,day=d})
+end
+\end{luacode*}
+\fi
+
+\newcounter{calweek}
+\setcounter{calweek}{1}
+\newcounter{schoolweek}
+
+\newcommand\woche[2]{%
+  \node [anchor=south east, align=right] at
+    ($(#1.south east)+(0em, 0em)$) {\footnotesize\textcolor{marron}{\textbf{#2}}};}
+
+\newcommand\schulwoche[2]{%
+  \node [anchor=north east, align=right] at
+    ($(#1.north east)+(0em, 0em)$) {\tiny{}};}  
+
+\ExplSyntaxOn
+\bool_new:N \WriteName
+\prop_new:N \l__julia_holiday_list_prop
+\bool_new:N \l__julia_special_bool
+\cs_new:Npn \exp_args:NNnc { \::N \::n \::c \::: }
+\NewDocumentCommand\addholiday
+  { s m m m }
+  {
+    \IfBooleanTF { #1 }
+      { \bool_set_true:N \l__julia_special_bool }
+      { \bool_set_false:N \l__julia_special_bool }
+    \__julia_add_holiday:nnn { #2 } { #3 } { #4 }
+  }
+\cs_new:Npn \__julia_add_holiday:nnn #1 #2 #3
+  {
+    \prop_clear_new:c { l__julia_#1_holiday }
+    \prop_clear_new:c { l__julia_#1_holiday_dates }
+    \__julia_add_holiday_aux:ccnnn
+      { l__julia_#1_holiday } { l__julia_#1_holiday_dates }
+      { #1 } { #2 } { #3 }
+  }
+\cs_new:Npn \__julia_add_holiday_aux:NNnnn #1 #2 #3 #4 #5
+  {
+    \prop_put:Nnn \l__julia_holiday_list_prop { #3 } { #1 }
+    \exp_args:NNnV
+    \prop_put:Nnn #1 { special } \l__julia_special_bool
+    \prop_put:Nnn #1 { dates } { #2 }
+    \prop_put:Nnn #1 { style } { #5 }
+    \clist_map_inline:nn { #4 }
+      { \__julia_prop_split_add:Nn #2 { ##1 } }
+    % \prop_show:N #1
+  }
+\cs_generate_variant:Nn \__julia_add_holiday_aux:NNnnn { ccnnn }
+\cs_new:Npn \__julia_prop_split_add:Nn #1 #2
+  { \__julia_prop_split_add:Nw #1 #2 \q_stop }
+\cs_new:Npn \__julia_prop_split_add:Nw #1 #2 / #3 \q_stop
+  {
+    \exp_args:NNff
+    \prop_put:Nnn #1
+      { \tl_trim_spaces:n { #3 } }
+      { \tl_trim_spaces:n { #2 } }
+  }
+\cs_new:Npn \holidaycheck #1
+  {
+    \cs_gset_eq:NN \HolidayStyle \c_empty_tl
+    \prop_map_inline:Nn \l__julia_holiday_list_prop
+      {
+        \prop_get:NnN ##2 { dates   } \HLprop
+        \prop_get:NnN ##2 { style   } \HLstyle
+        \prop_get:NnN ##2 { special } \HLtype
+        \prop_map_inline:Nn \HLprop
+          {
+            \__julia_holiday_check:nnn
+              { #1 } { ####1 } { ####2 }
+          }
+      }
+  }
+\cs_new:Npn \__julia_holiday_check:nnn #1 #2 #3
+  {
+    % #1 is the code passed to \holidaycheck
+    % #2 is the holiday name
+    % #3 is the holiday date
+    \ifdate { #3 }
+      {
+        \cs_set:Npn \name { #2 }
+        \cs_if_exist:cTF { is_ #2 _printed }
+          { \bool_set_false:N \WriteName }
+          { \bool_set_true:N \WriteName }
+        #1
+      }
+      { }
+  }
+\cs_new:Npn \HolidaySetUsed #1
+  { \cs_gset_eq:cN { is_ #1 _printed } \c_empty_tl }
+\ExplSyntaxOff
+
+%Header
+\renewcommand{\headrulewidth}{0.0pt}
+\setlength{\headheight}{1.0cm}
+\chead{%
+ \Huge\textcolor{marron}{\textbf{2025}}
+ \Large \hfill
+}
+\cfoot{}
+
+\newcommand{\kheight}{0.84}
+\newcommand{\kwidth}{2.89}
+\newcommand{\kshift}{3.41}
+\newcommand{\calstartdate}{2025-01-01}
+
+\newif\ifWeekStarted
+\WeekStartedfalse
+\newif\ifPrintSW
+\PrintSWfalse
+\newif\ifHasHoliday
+
+\newcommand{\kal}[2]{%
+\vspace*{-1cm}
+\begin{tikzpicture}[every day/.style={anchor = north}]
+\calendar[
+  dates = #1,
+  name = cal,
+  day yshift = 3em,
+  day code = 
+    {%
+      \holidaycheck{%
+        \global\let\HolidayStyle\HLstyle
+      }%
+      \expandafter\tikzset\expandafter{\HolidayStyle}%
+      \node [
+        name = \pgfcalendarsuggestedname,
+        every day,
+        shape = rectangle,
+        minimum height = \kheight cm,
+        text width = \kwidth cm,
+        draw = gray]
+        {\tikzdaytext\enskip
+         \pgfcalendarweekdayshortname{\pgfcalendarcurrentweekday}%
+        };%
+      \holidaycheck{%
+        \IfBooleanF{\HLtype}{\global\PrintSWfalse} % A holiday
+        \IfBooleanTF{\WriteName}
+          {%
+            \termin{\pgfcalendarsuggestedname}{\name}{}%
+            \HolidaySetUsed{\name}%
+          }%
+          {}%
+      }%
+      \ifPrintSW
+        \stepcounter{schoolweek}%
+        \global\WeekStartedfalse
+        \global\PrintSWfalse
+        \schulwoche{\pgfcalendarsuggestedname}{\arabic{schoolweek}}%
+      \fi
+      \ifdate{Monday}{%
+        \ifdate{equals=12-29}{%
+            \setcounter{calweek}{0}%
+        }{}%
+        \stepcounter{calweek}%
+        \woche{\pgfcalendarsuggestedname}{\arabic{calweek}}%
+      }{}%
+    },
+  execute before day scope=
+    {%
+      \ifdate{day of month=1}
+      {%
+        % Shift right
+        \pgftransformxshift{\kshift cm}
+        % Print month name 
+        \draw (0,0) node [shape=rectangle, minimum height= \kheight cm,
+          text width = \kwidth cm, fill = marron, text= white, draw = marron, text centered]
+          {\textbf{\pgfcalendarmonthname{\pgfcalendarcurrentmonth}}};
+      }{}%
+      \ifdate{Monday}{%
+        \global\WeekStartedtrue
+      }{}
+      \ifdate{workday}
+      {%
+        % normal days are white
+        \tikzset{every day/.style={fill=white}}
+        % Non-working day, gray background
+        \expandafter\ifdate\expandafter{#2}{%
+          \tikzset{every day/.style={fill=white}}
+        }{%
+          \ifWeekStarted
+            \global\PrintSWtrue
+          \fi
+        }%
+      }{}%
+      % Saturdays and half holidays
+      \ifdate{Saturday}{%
+        \tikzset{every day/.style={fill=gris!50}}%
+      }{}%
+      % % Sundays and full holidays
+      \ifdate{Sunday}{%
+        \tikzset{every day/.style={fill=piedra!50}}%
+      }{}% Special days, yellow background
+     % \ifdate{between=2020-09-01 and 2020-09-04}{%
+     %   \tikzset{every day/.style={fill=gray!30}}}{}
+      \ifdate{equals=2025-01-10}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-09-24}{%
+     	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-02-23}{%
+     	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-04-01}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-05-11}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-05-22}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-05-25}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-12-29}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-09-13}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-11-14}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-06-08}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-11-02}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-07-07}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-02-26}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-12-15}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-08-12}{%
+      	\tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-05-03}{%
+      	\tikzset{every day/.style={fill=green!13}}}{}
+     % holidays in Sweden
+      \ifdate{equals=2025-11-08}{%
+      	\tikzset{every day/.style={fill=blue!13}}}{}
+      \ifdate{equals=2025-10-31}{%
+     	\tikzset{every day/.style={fill=rosa!50}}}{}
+      \ifdate{equals=2025-11-01}{%
+     	\tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-12-08}{%
+        \tikzset{every day/.style={fill=green!13}}}{}
+      \ifdate{equals=2025-02-13}{%
+        \tikzset{every day/.style={fill=yellow!22}}}{}
+      \ifdate{equals=2025-12-24}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-12-25}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-12-26}{%
+        \tikzset{every day/.style={fill=rosa}}}{} 
+      \ifdate{equals=2025-12-31}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-01-01}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+     \ifdate{equals=2025-01-05}{%
+    	\tikzset{every day/.style={fill=rosa!50}}}{}
+      \ifdate{equals=2025-04-30}{%
+        \tikzset{every day/.style={fill=rosa!50}}}{}
+      \ifdate{equals=2025-01-06}{%
+        \tikzset{every day/.style={fill=rosa}}}{}  
+      \ifdate{equals=2026-04-03}{%
+        \tikzset{every day/.style={fill=rosa}}}{} 
+    \ifdate{equals=2025-04-18}{%
+    	\tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-04-19}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+    \ifdate{equals=2025-04-20}{%
+    	\tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-05-01}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-04-21}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+    \ifdate{equals=2026-05-23}{%
+    	\tikzset{every day/.style={fill=rosa}}}{}
+    \ifdate{equals=2025-05-29}{%
+    	\tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-06-06}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-06-07}{%
+      	\tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-06-08}{%
+      	\tikzset{every day/.style={fill=rosa}}}{}  
+      \ifdate{equals=2025-06-20}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+      \ifdate{equals=2025-06-21}{%
+        \tikzset{every day/.style={fill=rosa}}}{}
+    },
+  execute at begin day scope=
+    {%
+      % each day is shifted down according to the day of month
+      \pgftransformyshift{-\kheight*\pgfcalendarcurrentday cm}
+    }
+  ];
+\end{tikzpicture}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\pagestyle{fancy}
+\begin{center}
+	\kal{2025-01-01 to 2025-06-30}{}
+	\kal{2025-07-01 to 2025-12-31}{}
+	\pagebreak
+\end{center}
+
+\end{document}
