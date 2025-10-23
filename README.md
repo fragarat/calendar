@@ -1,4 +1,4 @@
-# README — LaTeX Template: 2025 Calendar (with Week Numbers)
+# LaTeX Template: 2025 Calendar (with Week Numbers)
 
 **Description**
 
