@@ -1,107 +1,94 @@
-# README — Plantilla LaTeX: Calendario 2025 (con números de semana)
+# README — LaTeX Template: 2025 Calendar (with Week Numbers)
 
-**Descripción**
+**Description**
 
-Este repositorio contiene una plantilla LaTeX para generar un calendario anual de **2025** con los números de la semana incluidos. Está pensada como plantilla limpia y fácil de personalizar (idioma, formato de días, resaltado de festivos, estilos de color, etc.).
-
----
-
-## Contenido
-
-* `calendar2025.tex` — Archivo LaTeX principal (plantilla).
-* `README.md` — Este documento.
-* `assets/` *(opcional)* — Carpeta para imágenes o iconos que quieras incluir en el calendario.
+This repository contains a LaTeX template for generating a **2025** yearly calendar that includes **ISO week numbers**. The template is designed to be clean, modular, and easy to customize (language, layout, color themes, highlighting holidays, etc.).
 
 ---
 
-## Requisitos
+## Contents
 
-Para compilar la plantilla necesitarás una instalación LaTeX completa que incluya al menos los siguientes paquetes (la mayoría vienen con distribuciones modernas como TeX Live o MikTeX):
-
-* `pgf` / `tikz` (para dibujar el calendario y usar `pgfcalendar`).
-* Paquetes de manejo de fechas (`datetime2` o similares) — la plantilla usa utilidades para calcular y mostrar números de semana.
-* `babel` o `polyglossia` (para idioma).
-* `fontenc`, `inputenc` (si usas pdfLaTeX) o usar XeLaTeX/LuaLaTeX con UTF-8 (recomendado si incluyes caracteres especiales).
-* `xcolor` (colores), `geometry` (márgenes), `calc` y `fancyhdr` (cabeceras/pies), entre otros.
-
-> Nota: la plantilla incluye comentarios indicando qué paquetes son necesarios; si tu distribución falta algún paquete, instálalo mediante el gestor de paquetes de tu distribución LaTeX.
+* `2025.tex` — Main LaTeX template file.
+* `README.md` — This document.
+* `2025.pdf` — Main PDF template file.
 
 ---
 
-## Cómo compilar
+## Requirements
 
-Recomendado (UTF-8, fuentes del sistema):
+To compile the template, you need a full LaTeX distribution (e.g., TeX Live or MikTeX) with at least the following packages installed:
+
+* `pgf` / `tikz` — for drawing and date management (`pgfcalendar`).
+* `datetime2` (or equivalent date utilities) — used to compute and display ISO week numbers.
+* `babel` or `polyglossia` — for multilingual support.
+* `fontenc`, `inputenc` (for pdfLaTeX) or XeLaTeX/LuaLaTeX with UTF-8 (recommended for accented characters).
+* `xcolor`, `geometry`, `calc`, and `fancyhdr` — for layout and color customization.
+
+> Note: The `.tex` file contains inline comments indicating which packages are required. If something is missing, install it using your LaTeX package manager.
+
+---
+
+## Compilation
+
+Recommended (UTF-8 and system fonts):
 
 ```bash
 xelatex calendar2025.tex
 xelatex calendar2025.tex
 ```
 
-Si prefieres `pdflatex` (asegúrate de que el archivo usa `\usepackage[utf8]{inputenc}`):
+Alternatively, using `pdflatex` (ensure UTF-8 encoding is enabled):
 
 ```bash
 pdflatex calendar2025.tex
 pdflatex calendar2025.tex
 ```
 
-Se recomienda ejecutar el compilador dos veces para asegurar referencias y numeración correctas.
+Run the compiler **twice** to ensure correct references and week numbering.
 
 ---
 
-## Uso y personalización rápida
+## Quick Customization Guide
 
-La plantilla está organizada y comentada para facilitar los cambios más habituales:
+The template is organized and commented for quick editing:
 
-1. **Idioma:** Cambia la opción en `babel` (por ejemplo `\usepackage[spanish]{babel}`) o usa `polyglossia` con XeLaTeX.
-2. **Inicio de la semana:** Por defecto la plantilla viene con la semana comenzando en **lunes** (sistema ISO). Puedes cambiarlo a domingo ajustando la configuración dentro del bloque `pgfcalendar`.
-3. **Números de semana:** La plantilla calcula y muestra los números de semana (ISO-8601) en un margen o columna dedicada. Si quieres ocultarlos, desactiva la opción `showweeknumbers` en la cabecera de configuración.
-4. **Formato de días/meses:** Puedes modificar el formato (tamaño de fuente, alineación, color) desde la sección de estilos.
-5. **Festivos/fechas especiales:** Hay un bloque para añadir festivos manualmente (lista de fechas). También puedes marcar rangos (vacaciones) para resaltarlos con un color de fondo.
-6. **Estética:** Cambia paleta de colores, tipografías y márgenes en la sección de `preamble`.
-
----
-
-## Ejemplos de personalización (breve)
-
-* Cambiar el color principal:
-
-```latex
-% en el preamble
-\definecolor{main}{HTML}{1F77B4}
-```
-
-* Ocultar números de semana:
-
-```latex
-% en la parte de configuración de la plantilla
-\def\showweeknumbers{0}
-```
-
-* Añadir un festivo:
-
-```latex
-% en la lista de festivos
-\newcommand{\festivos}{ {2025-01-01}, {2025-04-18}, {2025-12-25} }
-```
+1. **Language:** Change the language option in `babel` (e.g., `\usepackage[english]{babel}`) or use `polyglossia` for XeLaTeX.
+2. **Week start day:** By default, the calendar starts on **Monday** (ISO standard). You can change it to Sunday by adjusting the `pgfcalendar` settings.
+3. **Week numbers:** ISO week numbers are displayed in a side margin or column. To hide them, disable the `showweeknumbers` option.
+4. **Date and month format:** Adjust font size, alignment, or color in the style section.
+5. **Holidays/special dates:** Add holidays manually in the “holiday list” section, or highlight ranges (vacations, events) using background colors.
+6. **Style customization:** Change color palette, fonts, or margins in the preamble.
 
 ---
 
-## Problemas comunes y soluciones
+## Examples of Customization
 
-* **Fechas o números de semana erróneos:** Ejecuta la compilación dos veces y revisa que la zona horaria / paquete de fechas está correctamente configurado.
-* **Caracteres con acentos raros:** Usa XeLaTeX o añade `\usepackage[utf8]{inputenc}` si usas `pdflatex`.
-* **Paquetes faltantes:** Instala los paquetes solicitados (ej. `pgf`, `datetime2`) desde el gestor de tu distribución LaTeX.
+* **Change main color:**
+
+  ```latex
+  % In the preamble
+  \definecolor{main}{HTML}{1F77B4}
+  ```
+
+* **Hide week numbers:**
+
+  ```latex
+  % In the configuration section
+  \def\showweeknumbers{0}
+  ```
+
+* **Add holidays:**
+
+  ```latex
+  % In the holiday list
+  \newcommand{\holidays}{ {2025-01-01}, {2025-04-18}, {2025-12-25} }
+  ```
 
 ---
 
-## Licencia
+## Contact
 
-Esta plantilla se entrega bajo licencia **MIT**. Puedes usarla, modificarla y redistribuirla libremente, aunque se agradece mantener el crédito del autor si la publicas.
+If you’d like help customizing the template (e.g., adding your logo, regional holidays, or a specific design), feel free to reach out for assistance.
 
----
+Enjoy creating your 2025 calendar with week numbers included!
 
-## Contacto
-
-Si quieres que personalice la plantilla (añadir tu logo, festividades locales, diseño a medida), escríbeme y puedo ayudarte a adaptar el `.tex` a tus necesidades.
-
-¡Listo! Genera tu PDF con la plantilla y tendrás un calendario completo para 2025 con números de semana incluidos.
